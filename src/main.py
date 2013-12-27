@@ -6,6 +6,7 @@ import tornado.options
 import tornado.web
 from tornado.options import define, options
 import pymongo
+import json
 
 define("port", default=8888, help="run on the given port", type=int)
 
@@ -20,11 +21,11 @@ class Application(tornado.web.Application):
 	def __init__(self):
 		handlers = [
 			(r"/", IndexHandler),
+			(r"/comments", GetCommentsHandler),
 		]
 		settings = dict(
 			template_path = os.path.join(os.path.dirname(__file__), "templates"),
 			static_path = os.path.join(os.path.dirname(__file__), "static"),
-			# ui_modules = {"Book": BookModule},
 			debug = True,
 		)
 		conn = pymongo.Connection("localhost", 27017)
@@ -36,9 +37,19 @@ class IndexHandler(tornado.web.RequestHandler):
 		allData = self.application.db.infoDB.find()
 		doc = allData[0]
 		blog = Blog(doc)
-		# blog = {'title':blog_title, 'detail':blog_detail, 'content':blog_content}
-
 		self.render("blog.html", blog = blog)
+
+class GetCommentsHandler(tornado.web.RequestHandler):
+	def get(self):	
+		allData = self.application.db.infoDB.find()
+		print "#allData#", allData
+		blogDict = allData[0]
+		print "#blogDict#", blogDict
+		comments = blogDict['comment']
+		jsonData = json.dumps(comments)
+		print "#comments#", jsonData
+		print "#comments type#", type(jsonData)
+		self.write(jsonData)
 
 if __name__ == "__main__":
 	tornado.options.parse_command_line()

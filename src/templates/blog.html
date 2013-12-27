@@ -5,8 +5,66 @@
 	<meta charset="utf-8">
 	<title>{{ blog.title }}</title>
 	<link rel="stylesheet" type="text/css" href="{{ static_url("css/blog.css") }}" title="style" />
-	<script src="https://ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js">
-    </script>   
+	<script src="{{ static_url("js/prototype.js") }}"></script>
+	<!--<script src="{{ static_url("js/blog.js") }}"></script>-->
+	<script type="application/javascript">
+		function afterLoad()
+		{
+			$("getCommentBtn").observe("click", moreCommentRequest);
+		}
+
+		function moreCommentRequest()
+		{
+			new Ajax.Request('/comments', {
+	    		method:'get',
+  	    		onSuccess: function(transport) {
+                	var json = JSON.parse(transport.responseText);
+                	for (var i = 0; i < json.length; i++) {
+                		
+                		//The Whole Div
+                		var div = document.createElement('div');
+                		div.addClassName('comment')
+                		
+                		//The Comment Editor
+                		var p1 = document.createElement('p');
+                		p1.addClassName('editor');
+                		var name = document.createElement('span');
+                		name.addClassName('name');
+                		var time = document.createElement('span');
+                		time.addClassName('time');
+                		var nameText = document.createTextNode(json[i].name);
+                		var timeText = document.createTextNode(json[i].time);
+                		name.appendChild(nameText);
+                		time.appendChild(timeText);
+                		p1.appendChild(name);
+                		p1.appendChild(time);
+
+                		//The Comment Content
+                		var p2 = document.createElement('p');
+                		p2.addClassName('content');
+                		var content = document.createTextNode(json[i].content);
+                		p2.appendChild(content);
+
+                		//Finish by adding 2 p to the whole div
+                		div.appendChild(p1);
+                		div.appendChild(p2);
+                		$("commentsList").appendChild(div);
+                	}
+            	},
+			
+				onFailure: function() { 
+					alert('NETWORK PROBLEM !!'); 
+				}
+			});
+		}
+
+		function updateCommentList(json)
+		{
+
+		}
+
+		Event.observe(window, "load", afterLoad);
+	</script>
 </head>
 
 <body>
@@ -15,12 +73,15 @@
 	<h2>{{ blog.detail}}</h2>
 	<p>
 	{% autoescape None %}
-	{{blog.content}}
+	{{ blog.content }}
 	</p>
 
 	<h2>评论</h2>
     <input id="getCommentBtn" type="button" value="Get Comments">
     <div id="commentsList">
+    	<dl>
+    		
+    	</dl>
     </div>
 </div>
 
